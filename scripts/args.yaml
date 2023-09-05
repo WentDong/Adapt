@@ -1,0 +1,27 @@
+batch_size: 512
+context_len: 1
+cut: 0
+dataset: Small_Damp_Noise_No_Push_2 #Mix_Damp #AMP_PPO_no_liny #AMP_PPO_no_liny #AMP_PPO #IPPO8 #IPPOtest #IPPO8
+dataset_dir: data/
+device: cuda:6
+dropout_p: 0.1
+embed_dim: 128
+log_dir: EAT_runs_AMP/
+lr: 0.0001
+max_eval_ep_len: 1001
+model_dir: 
+n_blocks: 6
+n_epochs_ref: 1
+n_heads: 1
+position_encoding_length: 40
+num_eval_ep: 1024
+seed: 88
+warmup_steps: 10000
+wt_decay: 0.005
+algorithm_name: EAT_Small_Damp
+task: a1_amp
+note: Teacher from AMP, Postional Encoding on context len
+wandboff: False
+state_dim: 48
+act_dim: 12
+body_dim: 12

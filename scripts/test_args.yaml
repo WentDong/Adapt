@@ -1,0 +1,65 @@
+#试图将所有args统一到yaml格式
+# alg: 
+batch_size: 512
+context_len: 20
+cut: 0
+dataset: New_URDF #AMP_PPO_no_liny #AMP_PPO_no_liny #AMP_PPO #IPPO8 #IPPOtest #IPPO8
+dataset_dir: Integration_EAT/data/
+device: cuda:0
+dropout_p: 0.1
+embed_dim: 128
+log_dir: Integration_EAT/EAT_runs_AMP/
+lr: 0.0001
+max_eval_ep_len: 1000
+model_dir: 
+n_blocks: 6
+n_epochs_ref: 1
+n_heads: 2
+nobody: false
+noise: 0
+num_eval_ep: 1024
+num_updates_per_iter: 100
+seed: 55566
+warmup_steps: 10000
+wt_decay: 0.005
+algorithm_name: EAT_Small_Damp
+body_loss_w: 1
+action_loss_w: 1
+pred_body: false
+
+# env:
+compute_device_id: 0
+flex: false
+graphics_device_id: 0
+headless: false
+orovod: false
+joint:
+ - - -1
+load_run: null
+max_iterations: null
+not_use_body_norm: true
+not_use_state_norm: true
+num_envs: null
+num_threads: 0
+
+physx: false
+pipeline: gpu
+rate: -1
+resume: false
+sim_device: cuda:0
+sim_device_id: 0
+sim_device_type: cuda
+slices: 0
+subscenes: 0
+task: a1_amp
+use_gpu: true
+use_gpu_pipeline: true
+state_dim: 48
+act_dim: 12
+body_dim: 12
+Global_Step_Embeddings: false
+run_name: URDF_AMP_2heads
+checkpoint: null
+experiment_name: null
+note: Teacher from AMP, Postional Encoding on context len, Long context_len and 2 heads
+wandboff: False
