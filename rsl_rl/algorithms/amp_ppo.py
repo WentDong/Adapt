@@ -114,8 +114,6 @@ class AMPPPO:
         self.actor_critic.train()
 
     def act(self, obs, critic_obs, amp_obs, bodies = None):
-        if self.actor_critic.is_recurrent:
-            self.transition.hidden_states = self.actor_critic.get_hidden_states()
         # Compute the actions and values
         aug_obs, aug_critic_obs = obs.detach(), critic_obs.detach()
         self.transition.actions = self.actor_critic.act(aug_obs, bodies).detach()
@@ -159,10 +157,7 @@ class AMPPPO:
         mean_grad_pen_loss = 0
         mean_policy_pred = 0
         mean_expert_pred = 0
-        if self.actor_critic.is_recurrent:
-            generator = self.storage.reccurent_mini_batch_generator(self.num_mini_batches, self.num_learning_epochs)
-        else:
-            generator = self.storage.mini_batch_generator(self.num_mini_batches, self.num_learning_epochs)
+        generator = self.storage.mini_batch_generator(self.num_mini_batches, self.num_learning_epochs)
 
         amp_policy_generator = self.amp_storage.feed_forward_generator(
             self.num_learning_epochs * self.num_mini_batches,

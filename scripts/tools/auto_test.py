@@ -198,17 +198,6 @@ if __name__ == '__main__':
     env_cfg.terrain.num_cols = 5
     env_cfg.terrain.curriculum = False
     env_cfg.commands.curriculum = False
-    # env_cfg.noise.add_noise = False
-    # env_cfg.domain_rand.randomize_friction = False
-    env_cfg.domain_rand.push_robots = False
-    # env_cfg.commands.ranges.lin_vel_x = [0.0, 0.7]# 更改速度设置以防命令采样到0的情况    
-    # env_cfg.domain_rand.randomize_action_latency = False
-    # env_cfg.domain_rand.push_robots = False
-    # env_cfg.domain_rand.randomize_gains = False
-    # env_cfg.domain_rand.randomize_base_mass = False
-    # env_cfg.domain_rand.randomize_link_mass = False
-    # env_cfg.domain_rand.randomize_com_pos = False
-    # env_cfg.domain_rand.randomize_motor_strength = False
 
     # # Faster test
     env_cfg.commands.ranges.lin_vel_x = [0, 1]
@@ -217,37 +206,7 @@ if __name__ == '__main__':
     # prepare environment
     env, _ = task_registry.make_env(name=env_args.task, args=env_args, env_cfg=env_cfg)
     
-    #测试ppo======================================================================
-    # ppo_row_names = [0, 0.25, 0.5, 0.75]
-    # save_path = os.path.join(os.path.dirname(currentdir), "eval")
-    # file_name = "PPO_Models.csv"
-    # if not os.path.exists(save_path):
-    #     os.mkdir(save_path)
-
-    # ppo_row_names = np.arange(0,1,0.1)
-    # out_table = np.zeros((12,10))
-    # for i in range(12):#12条断腿情况
-    #     # for j in range (0, 0.8, 0.1):
-    #     t = 0
-    #     for j in ppo_row_names:            
-    #         out_table[i, t], _ = test_ppo(env_args, env, train_cfg, i, j)
-    #         t += 1
-    #         ppo_df = pd.DataFrame(out_table)
-    #         ppo_df.index = codename_list
-    #         ppo_df.columns = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-    #         ppo_res = ppo_df.to_csv(os.path.join(save_path, file_name), mode='w')
-
-    # out_table[:,-1],_ = test_ppo(args, env, train_cfg, -1, 1) #测完好情况
-    # ppo_df = pd.DataFrame(out_table)
-    # ppo_df.index = codename_list
-    # # ppo_df.columns = [0,0.25,0.5, 0.75, 1.0]
-    # ppo_df.columns = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-    # ppo_res = ppo_df.to_csv(os.path.join(os.path.dirname(parentdir), "scripts/Ippo_body.csv"), mode='w')
-    #测试ppo结束===================================================================
-    
-    
-    #测试EAT======================================================================
-    #loading EAT model
+    # loading model
     # loading pre_record stds,means...
     model_name = "EAT_Small_Damp_SMALLDAMPNOISENOPUSH2_01"
     run_name = "EAT_runs_AMP"

@@ -1,2 +1,38 @@
 # Adapt
-Actuator Degeneration Adaptation Transformer
+**A**ctuator  **D**egeneration **A**da**p**tation **T**ransformer. In submission progress of DAI 2023.
+
+
+
+## Teacher Policy
+
+-   To train a teacher policy, please follow the example command:
+
+    ```bash
+    python legged_gym/scripts/train.py --task a1_amp --sim_device $DEVICE --rl_device $DEVICE \
+    	--experiment_name $EXP --rum_name $RUN --max_iteration $ITER --joint $JOINT --seed $SEED
+    ```
+
+​		`$JOINT` means the id of joint whose actuator is suffering the degeneration.
+
+-   To evaluate, please follow the example command:
+
+    ```bash
+    python legged_gym/scripts/evaluate.py --task a1_amp --sim_device $DEVICE --rl_device $DEVICE \
+    	--experiment_name $EXP --run_name $RUN --checkpoint $CHECKPOINT --file_name $FILE --joint $JOINT
+    ```
+
+    If you want to test the performance over all 12 situations, please set `$JOINT=-1`.
+
+-   To collect dataset, please follow the example command:
+
+    ```bash
+    python legged_gym/scripts/collect.py --task a1_amp --sim_device $DEVICE --rl_device $DEVICE \
+    	--experiment_name $EXP --run_name $RUN --checkpoint $CHECKPOINT --file_name $FILE --joint $JOINT
+    ```
+
+    
+
+
+## Student Policy
+
+-   

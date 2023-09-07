@@ -100,7 +100,7 @@ class LeggedRobot(BaseTask):
         obs, privileged_obs, _, _, _, _, _ = self.step(torch.zeros(self.num_envs, self.num_actions, device=self.device, requires_grad=False))
         return obs, privileged_obs
 
-    def step(self, actions, bodies = None, stuck = False):
+    def step(self, actions, bodies = None):
         """ Apply actions, simulate, call self.post_physics_step()
 
         Args:
@@ -109,10 +109,7 @@ class LeggedRobot(BaseTask):
         """
         clip_actions = self.cfg.normalization.clip_actions
 
-        if stuck:
-            last_actions = self.obs_buf.clone()[:, 36:]
-            actions = last_actions * (torch.ones_like(bodies) - bodies) + actions * bodies
-
+    
         # joint_id = 4
         # print(actions[:5, joint_id])
         # print(self.obs_buf[:5, 1+12])
@@ -138,7 +135,7 @@ class LeggedRobot(BaseTask):
                 rng = self.cfg.domain_rand.motor_strength_range
                 self.torques = self.torques * torch_rand_float(rng[0], rng[1], self.torques.shape, device=self.device)
 
-            if (not stuck) and (bodies is not None):
+            if (bodies is not None):
                 self.torques = self.torques.mul(bodies)
 
             self.gym.set_dof_actuation_force_tensor(self.sim, gymtorch.unwrap_tensor(self.torques))

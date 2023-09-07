@@ -167,10 +167,8 @@ def get_args():
         {"name": "--num_envs", "type": int, "help": "Number of environments to create. Overrides config file if provided."},
         {"name": "--seed", "type": int, "help": "Random seed. Overrides config file if provided."},
         {"name": "--max_iterations", "type": int, "help": "Maximum number of training iterations. Overrides config file if provided."},
-        {"name": "--rate", "type":float, "default": -1, "help": "The rate of torque remains after flaw, -1 for randomize."},
         {"name": "--joint", "type": int, "default": -1, "help": "The number of joint flaws, -1 for randomize."},
-        {"name": "--body_latency", "type": int, "default": 0, "help": "The lantecy (steps) between body given to actor and the current body."},
-        {"name": "--stuck", "type": bool, "action": "store_true", "default": False, "help": "Whether to add stuck flaw to the environment."}
+        {"name": "--file_name", "type": str, "default": "test", "help": "The name of the file to save the evaluation result or dataset."},
     ]
     # parse arguments
     args = gymutil.parse_arguments(
@@ -185,44 +183,10 @@ def get_args():
     return args
 
 def export_policy_as_jit(actor_critic, path):
-    if hasattr(actor_critic, 'memory_a'):
-        # assumes LSTM: TODO add GRU
-        exporter = PolicyExporterLSTM(actor_critic)
-        exporter.export(path)
-    else: 
-        os.makedirs(path, exist_ok=True)
-        path = os.path.join(path, 'policy_1.pt')
-        model = copy.deepcopy(actor_critic.actor).to('cpu')
-        traced_script_module = torch.jit.script(model)
-        traced_script_module.save(path)
+    os.makedirs(path, exist_ok=True)
+    path = os.path.join(path, 'policy_1.pt')
+    model = copy.deepcopy(actor_critic.actor).to('cpu')
+    traced_script_module = torch.jit.script(model)
+    traced_script_module.save(path)
 
 
-class PolicyExporterLSTM(torch.nn.Module):
-    def __init__(self, actor_critic):
-        super().__init__()
-        self.actor = copy.deepcopy(actor_critic.actor)
-        self.is_recurrent = actor_critic.is_recurrent
-        self.memory = copy.deepcopy(actor_critic.memory_a.rnn)
-        self.memory.cpu()
-        self.register_buffer(f'hidden_state', torch.zeros(self.memory.num_layers, 1, self.memory.hidden_size))
-        self.register_buffer(f'cell_state', torch.zeros(self.memory.num_layers, 1, self.memory.hidden_size))
-
-    def forward(self, x):
-        out, (h, c) = self.memory(x.unsqueeze(0), (self.hidden_state, self.cell_state))
-        self.hidden_state[:] = h
-        self.cell_state[:] = c
-        return self.actor(out.squeeze(0))
-
-    @torch.jit.export
-    def reset_memory(self):
-        self.hidden_state[:] = 0.
-        self.cell_state[:] = 0.
- 
-    def export(self, path):
-        os.makedirs(path, exist_ok=True)
-        path = os.path.join(path, 'policy_lstm_1.pt')
-        self.to('cpu')
-        traced_script_module = torch.jit.script(self)
-        traced_script_module.save(path)
-
-    

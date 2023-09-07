@@ -3,9 +3,6 @@ import torch.nn as nn
 import torch.utils.data
 from torch import autograd
 
-from rsl_rl.utils import utils
-
-
 class AMPDiscriminator(nn.Module):
     def __init__(
             self, input_dim, amp_reward_coef, hidden_layer_sizes, device, task_reward_lerp=0.0):
