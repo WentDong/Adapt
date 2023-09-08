@@ -110,7 +110,7 @@ class Block(nn.Module):
         x = self.ln2(x)
         return x
 
-class LeggedTransformerBody(nn.Module):
+class Adapt(nn.Module):
     def __init__(self, body_dim, state_dim, act_dim, n_blocks, h_dim, context_len,
                  n_heads, drop_p, max_timestep=4096, state_mean=None, state_std=None, body_mean=None, body_std=None, position_encoding_length = 4096):
         super().__init__()
@@ -141,7 +141,6 @@ class LeggedTransformerBody(nn.Module):
         # continuous actions
         self.embed_action = torch.nn.Linear(act_dim, h_dim)
         
-        #! 此处根据余琛学长意见去掉最后一层的action，原本这一层会让他的机器狗在实机上表现得更好 又改成true试一下
         use_action_tanh = False # True for continuous actions
 
         ### prediction heads
@@ -164,12 +163,8 @@ class LeggedTransformerBody(nn.Module):
         
         B, T, _ = states.shape
 
-        # time_embeddings = self.embed_timestep(timesteps)
-
-        # time embeddings are treated similar to positional embeddings
         state_embeddings = self.positional_encoding(self.embed_state(states))
         action_embeddings = self.positional_encoding(self.embed_action(actions))
-        # pdb.set_trace()
         body_embeddings = self.positional_encoding(self.embed_body(bodies))
 
         # stack rtg, states and actions and reshape sequence as

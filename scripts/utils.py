@@ -11,58 +11,6 @@ import numpy as np
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-def discount_cumsum(x, gamma):
-    disc_cumsum = np.zeros_like(x)
-    disc_cumsum[-1] = x[-1]
-    for t in reversed(range(x.shape[0] - 1)):
-        disc_cumsum[t] = x[t] + gamma * disc_cumsum[t + 1]
-    return disc_cumsum
-
-def partial_traj(dataset_path_list, args, context_len=20, rtg_scale=1000, body_dim=12):
-    """
-    当轨迹过长的时候，为照顾cpu运算负荷需要将数据集分几段加载，此函数处理一段，可以通过简单的复用调用来完成
-    -------------
-    输入：
-    dataset_path_list: list of trajs
-        一组轨迹的存储路径
-    batch_size: int
-        training batch size
-    context_len: int
-        transformer需要读取的上下文长度
-    rtg_scale: int
-        normalize returns to go
-    body_dim: int
-        number of body parts
-
-
-    输出：
-    traj_data_loader：DataLoader objects
-        用以学习的轨迹对象
-    state_mean,state_std: float
-        状态值的均值和方差
-    body_mean,body_std: float
-        body值的均值方差
-    """
-    big_list = []
-    for pkl in tqdm(dataset_path_list):
-        with open(pkl, "rb") as f:
-            thelist = pickle.load(f)
-
-        assert "body" in thelist[0]
-        if args.cut == 0:
-            big_list = big_list + thelist
-        else:
-            big_list = big_list + thelist[: args.cut]
-
-    traj_dataset = D4RLTrajectoryDataset(
-        big_list, context_len, rtg_scale, leg_trans_pro=True
-    )
-    assert body_dim == traj_dataset.body_dim
-
-    state_mean, state_std = traj_dataset.get_state_stats(body=False)
-
-    return traj_dataset, state_mean, state_std  # , body_mean, body_std
-
 def flaw_generation(
     num_envs, bodydim=12, fixed_joint=[-1], flawed_rate=-1, device="cpu", upper_bound=1
 ):
@@ -166,8 +114,7 @@ def evaluate_on_env_batch_body(
     total_timesteps = 0
     state_dim = env.cfg.env.num_observations
     act_dim = env.cfg.env.num_actions
-    body_dim = len(body_target)
-
+    body_dim = env.cfg.env.body_dim
     assert state_mean is not None
     if not torch.is_tensor(state_mean):
         state_mean = torch.from_numpy(state_mean).to(device)
@@ -252,37 +199,6 @@ def evaluate_on_env_batch_body(
 
     return results
 
-def parallel_load(path):
-    start = time.time()
-    print("START LOADING ......")
-
-    def process(file):
-        with open(file, "rb") as f:
-            dataset = pickle.load(f)
-        return dataset
-
-    p = multiprocessing.Pool()
-    res_list = []
-    for f in glob.glob(os.path.join(path, "*.pkl")):
-        # launch a process for each file (ish).
-        # The result will be approximately one process per CPU core available.
-        res = p.apply_async(process, [f])
-        res_list.append(res)
-
-    p.close()
-    p.join()  # Wait for all child processes to close.
-
-    # print("======================")
-    data_list = []
-    for res in res_list:
-        print("PROCESSING  ", res)
-        data_list.append(res.get())
-    end = time.time()
-    print(f"FINISHED LOADING!! ({end - start}) SEC")
-    # pdb.set_trace()
-    return data_list
-
-
 def load_path(path):
     print("START LOADING ......")
 
@@ -304,9 +220,6 @@ class D4RLTrajectoryDataset(Dataset):
         self,
         dataset_path,
         context_len,
-        leg_trans=False,
-        leg_trans_pro=False,
-        bc=False,
     ):
 
         self.context_len = context_len
@@ -450,14 +363,11 @@ class D4RLTrajectoryDataset(Dataset):
 
 def get_dataset_config(dataset):
 
-    eval_env = "none"
     datafile = ""
-    i_magic_list = []
-    eval_body_vec = []
-    if dataset == "Small_Damp_Noise_No_Push_2":
-        datafile = "Small_Damp_Noise_No_Push_2"
-        i_magic_list = [f"PPO_AMP_{x}" for x in range(12)]
-        eval_body_vec = [1 for _ in range(12)]
+    file_names = []
+    if dataset == "Datas":
+        datafile = "Datas"
+        file_names = [f"Joint_{x}" for x in range(12)]
     
 
-    return datafile, i_magic_list, eval_body_vec, eval_env
+    return datafile, file_names

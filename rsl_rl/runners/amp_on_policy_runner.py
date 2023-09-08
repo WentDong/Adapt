@@ -104,13 +104,13 @@ class AMPOnPolicyRunner:
         
         _, _ = self.env.reset()
     
-    def learn(self, num_learning_iterations, init_at_random_ep_len=False, body_dim = 0, flawed_joint = -1, flawed_rate = 1):
+    def learn(self, num_learning_iterations, init_at_random_ep_len=False, body_dim = 0, flawed_joint = -1):
         # initialize writer
         if self.log_dir is not None and self.writer is None:
             self.writer = SummaryWriter(log_dir=self.log_dir, flush_secs=10)
         if init_at_random_ep_len:
             self.env.episode_length_buf = torch.randint_like(self.env.episode_length_buf, high=int(self.env.max_episode_length))
-        bodies, joints = flaw_generation(self.env.num_envs, body_dim, flawed_joint, flawed_rate, device = self.device)
+        bodies, joints = flaw_generation(self.env.num_envs, body_dim, flawed_joint, device = self.device)
         
         obs = self.env.get_observations()
         privileged_obs = self.env.get_privileged_observations()
@@ -179,7 +179,7 @@ class AMPOnPolicyRunner:
                 rw = self.log(locals())
                 if rw > max_reward and it > 700:
                     max_reward = rw
-                    self.save(os.path.join(self.log_dir, f"model_{flawed_joint}.pt"))
+                    self.save(os.path.join(self.log_dir, f"model_best.pt"))
             if it % self.save_interval == 0:
                 self.save(os.path.join(self.log_dir, 'model_{}.pt'.format(it)))
             ep_infos.clear()

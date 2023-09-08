@@ -18,7 +18,7 @@
 
     ```bash
     python legged_gym/scripts/evaluate.py --task a1_amp --sim_device $DEVICE --rl_device $DEVICE \
-    	--experiment_name $EXP --run_name $RUN --checkpoint $CHECKPOINT --file_name $FILE --joint $JOINT
+    	--experiment_name $EXP --load_run $RUN --checkpoint $CHECKPOINT --file_name $FILE --joint $JOINT
     ```
 
     If you want to test the performance over all 12 situations, please set `$JOINT=-1`.
@@ -27,10 +27,17 @@
 
     ```bash
     python legged_gym/scripts/collect.py --task a1_amp --sim_device $DEVICE --rl_device $DEVICE \
-    	--experiment_name $EXP --run_name $RUN --checkpoint $CHECKPOINT --file_name $FILE --joint $JOINT
+    	--experiment_name $EXP --load_run $RUN --checkpoint $CHECKPOINT --file_name $FILE --joint $JOINT
     ```
 
-    
+-    To visualize the policy, please follow the example command:
+
+    ```   bash
+    python legged_gym/scripts/play.py --task a1_amp --sim_device $DEVICE --rl_device $DEVICE \
+    	--experiment_name $EXP --load_run $RUN --checkpoint $CHECKPOINT --joint $JOINT --rate $RATE
+    ```
+
+    `$RATE` means the degeneration rate, `-1` for randomization.
 
 
 ## Student Policy

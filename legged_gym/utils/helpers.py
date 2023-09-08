@@ -168,6 +168,7 @@ def get_args():
         {"name": "--seed", "type": int, "help": "Random seed. Overrides config file if provided."},
         {"name": "--max_iterations", "type": int, "help": "Maximum number of training iterations. Overrides config file if provided."},
         {"name": "--joint", "type": int, "default": -1, "help": "The number of joint flaws, -1 for randomize."},
+        {"name": "--rate", "type":float, "default": -1, "help": "The rate of torque remains after flaw, -1 for randomize."},
         {"name": "--file_name", "type": str, "default": "test", "help": "The name of the file to save the evaluation result or dataset."},
     ]
     # parse arguments

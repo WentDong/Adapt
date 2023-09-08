@@ -161,7 +161,8 @@ cython_debug/
 
 *._*
 logs
-EAT_runs*
+*_runs*
 data
 /datasets/
+/eval/
 wandb

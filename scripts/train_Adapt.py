@@ -1,16 +1,12 @@
-import argparse
-from argparse import Namespace
 import os
 import pickle
 import inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 os.sys.path.insert(0, parentdir)
-# os.sys.path.insert(0, os.path.dirname(parentdir))
 import random
 import csv
 from datetime import datetime
-import copy
 import numpy as np
 
 from legged_gym.envs import *
@@ -19,10 +15,10 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from utils import D4RLTrajectoryDataset, evaluate_on_env_batch_body, get_dataset_config, partial_traj 
-from model import LeggedTransformerBody
+from utils import D4RLTrajectoryDataset, evaluate_on_env_batch_body, get_dataset_config 
+from model import Adapt
 import wandb
-from legged_gym.utils import task_registry, Logger 
+from legged_gym.utils import task_registry 
 from tqdm import trange, tqdm
 import yaml
 
@@ -32,9 +28,7 @@ def train(args):
     state_dim = args["state_dim"]
     act_dim = args["act_dim"]
     body_dim = args["body_dim"]
-    ##-----
 
-    # max_eval_ep_len = 500  # max len of one episode
     max_eval_ep_len = args["max_eval_ep_len"]  # max len of one episode
     num_eval_ep = args["num_eval_ep"]          # num of evaluation episodes
 
@@ -52,9 +46,9 @@ def train(args):
 
     args["wandboff"] = True if "test" in args["dataset"] else args["wandboff"]
 
-    datafile, i_magic_list, eval_body_vec, eval_env = get_dataset_config(args["dataset"])
+    datafile, file_names = get_dataset_config(args["dataset"])
     
-    file_list = [os.path.join(datafile, f"{i_magic}.pkl") for i_magic in i_magic_list]
+    file_list = [os.path.join(datafile, f"{file}.pkl") for file in file_names]
     dataset_path_list_raw = [os.path.join(args["dataset_dir"], d) for d in file_list]
     dataset_path_list = []
     for p in dataset_path_list_raw:
@@ -69,16 +63,10 @@ def train(args):
     env_cfg, _ = task_registry.get_cfgs(name =env_args.task)
     env_cfg.env.num_envs = args["num_eval_ep"]
     env_cfg.terrain.curriculum = False
-    # env_cfg.noise.add_noise = False
-    # env_cfg.domain_rand.randomize_friction = False
-    env_cfg.domain_rand.push_robots = False
     env_cfg.commands.ranges.lin_vel_x = [0, 1]
     env_cfg.commands.ranges.lin_vel_y = [-0, 0]
     env_cfg.commands.ranges.ang_vel_yaw = [-0.5,0.5]
-    env_cfg.commands.curriculum = False
-
-    # env_cfg.commands.ranges.lin_vel_x = [0.3, 0.7]
-    
+    env_cfg.commands.curriculum = False    
     env, _ = task_registry.make_env(name = env_args.task, args = env_args, env_cfg = env_cfg)
     
     # saves model and csv in this directory
@@ -110,7 +98,7 @@ def train(args):
     log_csv_path = os.path.join(log_dir, model_file_name, "log.csv")
 
     csv_writer = csv.writer(open(log_csv_path, 'a', 1))
-    csv_header = (["duration", "num_updates", "body_loss", "action_loss",
+    csv_header = (["duration", "num_updates", "action_loss",
                    "eval_avg_reward", "eval_avg_ep_len", "eval_d4rl_score"])
 
     csv_writer.writerow(csv_header)
@@ -130,14 +118,13 @@ def train(args):
     # pdb.set_trace()
     if not args["wandboff"]:
         try:
-            wandb.init(config=args, project="my_EAT_test", name=model_file_name, mode="online", notes=args["note"])
+            wandb.init(config=args, project=args["algorithm_name"], name=model_file_name, mode="online", notes=args["note"])
         except:
             print("wandb disabled")
-            wandb.init(config=args, project="my_EAT_test", name=model_file_name, mode="disabled", notes=args["note"])
+            wandb.init(config=args, project=args["algorithm_name"], name=model_file_name, mode="disabled", notes=args["note"])
 
     #---------------------------------------------------------------------------------------------------------------
     print("Loding paths for each robot model...")
-    #加载轨迹部分
     big_list = []
     for pkl in tqdm(dataset_path_list):  
         with open(pkl, 'rb') as f:
@@ -179,7 +166,7 @@ def train(args):
     print("model preparing")
    
     # Local_Context_Len Positional Encoding 
-    model = LeggedTransformerBody(
+    model = Adapt(
             body_dim=body_dim,
             state_dim=state_dim,
             act_dim=act_dim,
@@ -195,7 +182,7 @@ def train(args):
     
     if args["model_dir"] is not None:
         model.load_state_dict(torch.load(
-            os.path.join( args["model_dir"], "model_best.pt" ), map_location = args["device"]
+            os.path.join(args["model_dir"], "model_best.pt" ), map_location = args["device"]
         ))
         
     optimizer = torch.optim.AdamW(
@@ -217,26 +204,21 @@ def train(args):
     max_d4rl_score = -1.0
     total_updates = 0
 
-    # global_train_step = 0
     inner_bar = tqdm(range(num_updates_per_iter), leave = False)
     state_mean = model.state_mean.to(device)
     state_std = model.state_std.to(device)
         
     for epoch in trange(n_epochs):
-        # pdb.set_trace()
         log_action_losses = []
-        log_body_losses = []
         model.train()
 
         for states, actions, bodies, gt_bodies, traj_mask in iter(traj_data_loader):
 
-            # timesteps = timesteps.to(device)    # B x T
             states = states.to(device)          # B x T x state_dim
 
             actions = actions.to(device)        # B x T x act_dim
-            bodies = bodies.to(device)  # B x T x body_dim
-            B, T, D = bodies.shape
-            gt_bodies = gt_bodies.to(device)  # B x T x body_dim
+            bodies = bodies.to(device)          # B x T x body_dim
+            gt_bodies = gt_bodies.to(device)    # B x T x body_dim
             traj_mask = traj_mask.to(device)    # B x T
             action_target = torch.clone(actions).detach().to(device)
 
@@ -274,15 +256,13 @@ def train(args):
         if epoch % max(int(5000/num_updates_per_iter), 1) == 0:
             # evaluate action accuracy
             results = evaluate_on_env_batch_body(model = model, device=device, context_len=context_len, env=env, 
-                                                body_target=eval_body_vec, num_eval_ep = num_eval_ep, 
-                                                max_test_ep_len = max_eval_ep_len, state_mean = state_mean, 
-                                                state_std = state_std)
+                                                 num_eval_ep = num_eval_ep, max_test_ep_len = max_eval_ep_len,
+                                                 state_mean = state_mean, state_std = state_std)
 
         
             eval_avg_reward = results['eval/avg_reward']
             eval_avg_ep_len = results['eval/avg_ep_len']
             
-            mean_body_loss = np.mean(log_body_losses)
             mean_action_loss = np.mean(log_action_losses)
             time_elapsed = str(datetime.now().replace(microsecond=0) - start_time)
 
@@ -290,7 +270,6 @@ def train(args):
                     "time elapsed: " + time_elapsed  + '\n' +
                     "num of updates: " + str(total_updates) + '\n' +
                     "action loss: " +  format(mean_action_loss, ".5f") + '\n' +
-                    "body loss: " +  format(mean_body_loss, ".5f") + '\n' +
                     "eval avg reward: " + format(eval_avg_reward, ".5f") + '\n' +
                     "eval avg ep len: " + format(eval_avg_ep_len, ".5f") #+ 
                 )
@@ -299,7 +278,7 @@ def train(args):
             if not args["wandboff"]:
                 wandb.log({"Evaluation Score": eval_avg_reward, "Episode Length": eval_avg_ep_len, "Total Steps": total_updates})
             
-            log_data = [time_elapsed, total_updates, mean_body_loss, mean_action_loss,
+            log_data = [time_elapsed, total_updates, mean_action_loss,
                         eval_avg_reward, eval_avg_ep_len]
 
             csv_writer.writerow(log_data)
@@ -309,23 +288,14 @@ def train(args):
                 tqdm.write("saving max score model at: " + save_model_path+"_best.pt(.jit)")
                 tqdm.write("max score: " + format(max_d4rl_score, ".5f"))
                 torch.save(model.state_dict(), save_model_path+"_best.pt")
-                traced_script_module = torch.jit.script(copy.deepcopy(model).to('cpu'))
-                traced_script_module.save(save_model_path+"_best.jit")
                 max_d4rl_score = eval_avg_reward
         #end one eval & log
         #========================================================================
 
         if epoch % 100 == 0:
             torch.save(model.state_dict(), save_model_path+str(epoch)+"epoch.pt")
-            traced_script_module = torch.jit.script(copy.deepcopy(model).to('cpu'))
-            traced_script_module.save(save_model_path+str(epoch)+"epoch.jit")
 
-        # tqdm.write("saving current model at: " + save_model_path+".pt(.jit)") 
-        # print("saving current model at: " + save_model_path+".pt(.jit)")
-        # if total_updates % 10 == 0:
         torch.save(model.state_dict(), save_model_path+str(epoch%10)+".pt")
-        traced_script_module = torch.jit.script(copy.deepcopy(model).to('cpu'))
-        traced_script_module.save(save_model_path+str(epoch%10)+".jit")
     #end training
     #=======================================================================================
 
@@ -345,16 +315,8 @@ def train(args):
     if not args["wandboff"]:
         wandb.finish()
 
-# def preyaml(args):
-#     env_args = get_args()
-#     with open("/NAS2020/Workspaces/DRLGroup/wuxinyuan/leggedrobots/Integration_EAT/scripts/args.yaml", "w") as fyaml:
-#         print(yaml.dump_all([args, env_args], fyaml))
-    
-#     return
-
 if __name__ == "__main__":
 
     with open("./scripts/args.yaml", "r") as fargs:
         args = yaml.safe_load(fargs)
     train(args)
-    # preyaml(args)
