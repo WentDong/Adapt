@@ -6,7 +6,7 @@
 -   Nvidia IsaacGym
 -   PyTorch
 
-Details could be viewd in `requirement.txt`.
+Details could be viewd in `requirements.txt`.
 
 ## Teacher Policy
 
