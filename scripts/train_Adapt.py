@@ -279,7 +279,7 @@ def train(args):
                 wandb.log({"Evaluation Score": eval_avg_reward, "Episode Length": eval_avg_ep_len, "Total Steps": total_updates})
             
             log_data = [time_elapsed, total_updates, mean_action_loss,
-                        eval_avg_reward.item(), eval_avg_ep_len.item()]
+                        eval_avg_reward.detach().cpu().item(), eval_avg_ep_len.detach().cpu().item()]
 
             csv_writer.writerow(log_data)
             
