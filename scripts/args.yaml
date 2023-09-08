@@ -3,7 +3,7 @@ context_len: 20
 cut: 0
 dataset: Datas
 dataset_dir: data/
-device: cuda:6
+device: cuda:0
 dropout_p: 0.1
 embed_dim: 128
 log_dir: ADAPT_runs/

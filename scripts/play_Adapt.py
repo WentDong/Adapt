@@ -10,7 +10,7 @@ from legged_gym.envs import *
 
 import torch
 from model import Adapt
-from legged_gym.utils import  get_args, task_registry, Logger
+from legged_gym.utils import get_args, task_registry, Logger
 import yaml
 
 def play(args):
@@ -144,7 +144,7 @@ def play(args):
             for j in range(eval_batch_size):
                 if change_timing[j] == t:
                     running_body[j][joint] = rate
-            running_state, _, running_reward, done, infos = env.step(act, running_body)
+            running_state, _, running_reward, done, infos, _, _ = env.step(act, running_body)
             
             if infos["episode"]:
                 num_episodes = torch.sum(env.reset_buf).item()

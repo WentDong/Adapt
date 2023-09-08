@@ -143,7 +143,7 @@ def train(args):
     with open(os.path.join(log_dir, model_file_name,"env_args.yaml") , "w") as log_for_arg:
         print(yaml.dump(env_args, log_for_arg))
         
-    traj_dataset = D4RLTrajectoryDataset(big_list, context_len, leg_trans_pro=True)
+    traj_dataset = D4RLTrajectoryDataset(big_list, context_len)
     assert body_dim == traj_dataset.body_dim
     
     state_mean, state_std = traj_dataset.get_state_stats(body=False)

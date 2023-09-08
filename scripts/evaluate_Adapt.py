@@ -1,7 +1,3 @@
-"""
-本脚本用于自动测试某个模型在各种坏损程度下的得分
-"""
-
 import inspect
 import os
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -39,8 +35,8 @@ def test_Adapt(args, env, model, faulty_tag = 0, flawed_rate = 1):
     body_target = [1 for _ in range(body_dim)]
     body_target [faulty_tag] = flawed_rate
     
-    state_mean = torch.from_numpy(model.state_mean).to(device)
-    state_std = torch.from_numpy(model.state_std).to(device)
+    state_mean = model.state_mean.clone().to(device)
+    state_std = model.state_std.clone().to(device)
     
     body_target = torch.tensor(body_target, dtype=torch.float32, device=device)
     bodies = body_target.expand(eval_batch_size, max_test_ep_len, body_dim).type(torch.float32)
@@ -78,7 +74,7 @@ def test_Adapt(args, env, model, faulty_tag = 0, flawed_rate = 1):
                                         bodies=bodies[:,t-context_len+1:t+1])
                 act = act_preds[:, -1].detach()
             
-            running_state, _, running_reward, done, infos = env.step(act, body_target)
+            running_state, _, running_reward, done, infos, _, _= env.step(act, body_target)
             actions[:, t] = act
 
             total_rewards += running_reward.detach().cpu().numpy() * (dones == 0)
@@ -119,7 +115,7 @@ if __name__ == '__main__':
     # loading pre_record stds,means...
     log_dir = args["log_dir"]
     file_name = args["file_name"]
-    model_path = os.path.join(os.path.dirname(parentdir), log_dir, file_name)
+    model_path = os.path.join(parentdir, log_dir, file_name)
     task_args = {}
     with open(os.path.join(model_path, "args.yaml"), "r") as f:
         task_args_Loader = yaml.load_all(f, Loader = yaml.FullLoader)
@@ -161,19 +157,19 @@ if __name__ == '__main__':
         os.makedirs(file_path)
     file_name = "Returns.csv"
     length_name = "Lengths.csv"
-    EAT_rows = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-    EAT_table = np.zeros((12,10))
+    Adapt_Rows = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    Adapt_table = np.zeros((12,10))
     len_table = np.zeros((12,10))
     for i in range(12):
-        for j in EAT_rows:            
-            EAT_table[i, np.where(EAT_rows==j)], len_table[i, np.where(EAT_rows==j)] = test_Adapt(args, env, model, i, j)
-            EAT_df = pd.DataFrame(EAT_table)
-            EAT_df.index = codename_list
-            EAT_df.columns = EAT_rows
-            EAT_res = EAT_df.to_csv(os.path.join(file_path, file_name), mode='w')
+        for j in Adapt_Rows:            
+            Adapt_table[i, np.where(Adapt_Rows==j)], len_table[i, np.where(Adapt_Rows==j)] = test_Adapt(args, env, model, i, j)
+            df = pd.DataFrame(Adapt_table)
+            df.index = codename_list
+            df.columns = Adapt_Rows
+            df_res = df.to_csv(os.path.join(file_path, file_name), mode='w')
 
             df2 = pd.DataFrame(len_table)
             df2.index = codename_list
-            df2.columns = EAT_rows
+            df2.columns = Adapt_Rows
             df2_res = df2.to_csv(os.path.join(file_path, length_name), mode = 'w')
     

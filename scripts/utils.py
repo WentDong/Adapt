@@ -81,33 +81,11 @@ def evaluate_on_env_batch_body(
     device,
     context_len,
     env,
-    body_target,
     num_eval_ep=10,
     max_test_ep_len=1000,
     state_mean=None,
     state_std=None,
-    prompt_policy=None,
 ):
-    """
-    用来测试EAT及其变种的模型表现
-    ------------------
-    model：待测试模型
-    device：测试硬件号
-    context_len：模型上下文长度
-    env：测试环境
-    body_target：目前除了用来提供bodydim外暂时无用
-    num_eval_ep=10：测试所用环境数量
-    max_test_ep_len=1000：每个环境中测试长度
-    state_mean=None：如其名
-    state_std=None：如其名
-    body_mean=None：如其名，无用
-    body_std=None：如其名，无用
-    render=False：是否渲染，暂时无用
-    prompt_policy：暂时无用
-    body_pre=False：是否将自身预测的body作为下一帧的body输入
-    body_gt：是否将真实body作为下一帧预测的输入（body_pre为true时为body预测的输入，否则为action预测的输入）
-    """
-
     eval_batch_size = num_eval_ep  # required for forward pass
 
     results = {}
@@ -166,13 +144,8 @@ def evaluate_on_env_batch_body(
                     actions[:, :context_len],
                     bodies=bodies[:, :context_len],
                 )
-
-                if prompt_policy is None:
-                    act = act_preds[:, t].detach()
-                else:
-                    act = prompt_policy(running_state.to(device))
+                act = act_preds[:, t].detach()
             else:
-                
                 _, act_preds, _ = model.forward(
                     states[:, t - context_len + 1 : t + 1],
                     actions[:, t - context_len + 1 : t + 1],
@@ -234,16 +207,6 @@ class D4RLTrajectoryDataset(Dataset):
 
         elif type(dataset_path) == list:
             self.trajectories = dataset_path
-
-        if bc:
-            print("CONCATENATE BODY INTO STATE ..........")
-            for traj in tqdm(self.trajectories):
-                traj["observations"] = np.concatenate(
-                    [traj["bodies"], traj["observations"]], axis=1
-                )
-                traj["next_observations"] = np.concatenate(
-                    [traj["bodies"], traj["next_observations"]], axis=1
-                )
 
         # calculate min len of traj, state mean and variance
         # and returns_to_go for all traj
@@ -367,7 +330,7 @@ def get_dataset_config(dataset):
     file_names = []
     if dataset == "Datas":
         datafile = "Datas"
-        file_names = [f"Joint_{x}" for x in range(12)]
+        file_names = [f"Joint_{x}" for x in range(1)]
     
 
     return datafile, file_names

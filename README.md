@@ -1,7 +1,12 @@
 # Adapt
 **A**ctuator  **D**egeneration **A**da**p**tation **T**ransformer. In submission progress of DAI 2023.
 
+## Environment Require
 
+-   Nvidia IsaacGym
+-   PyTorch
+
+Details could be viewd in `requirement.txt`.
 
 ## Teacher Policy
 
@@ -30,7 +35,7 @@
     	--experiment_name $EXP --load_run $RUN --checkpoint $CHECKPOINT --file_name $FILE --joint $JOINT
     ```
 
--    To visualize the policy, please follow the example command:
+-    To visualize the performance, please follow the example command:
 
     ```   bash
     python legged_gym/scripts/play.py --task a1_amp --sim_device $DEVICE --rl_device $DEVICE \
@@ -42,4 +47,26 @@
 
 ## Student Policy
 
--   
+-   To train a student policy, please follow the example command:
+
+    ```bash
+    python scripts/train_Adapt.py
+    ```
+
+    The detail args could be viewed in `args.yaml`.
+
+-   To evaluate, please follow the example command:
+
+    ```bash
+    python scripts/evaluate_Adapt.py
+    ```
+
+    The detail args could be viewed in `test_args.yaml`.
+
+-   To visualize the performance, please follow the example command:
+
+    ```bash
+    python scripts/play_Adapt.py
+    ```
+
+    The detail args could be viewed in `test_args.yaml`.

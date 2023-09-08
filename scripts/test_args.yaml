@@ -1,6 +1,6 @@
 device: cuda:0
 log_dir: ADAPT_runs
-file_name: ADAPT_DATAS_01
+file_name: ADAPT_DATAS_02
 task: a1_amp
 state_dim: 48
 act_dim: 12
