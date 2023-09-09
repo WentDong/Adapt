@@ -17,16 +17,20 @@ Details could be viewd in `requirements.txt`.
     	--experiment_name $EXP --rum_name $RUN --max_iteration $ITER --joint $JOINT --seed $SEED
     ```
 
-​   `$JOINT` means the id of joint whose actuator is suffering the degeneration.
+-   `$JOINT` means the id of joint whose actuator is suffering the degeneration.
+
+      
 
 -   To evaluate, please follow the example command:
 
--  ```bash
+-   ```bash
     python legged_gym/scripts/evaluate.py --task a1_amp --sim_device $DEVICE --rl_device $DEVICE \
     	--experiment_name $EXP --load_run $RUN --checkpoint $CHECKPOINT --file_name $FILE --joint $JOINT
     ```
 
-    If you want to test the performance over all 12 situations, please set `$JOINT=-1`.
+-   If you want to test the performance over all 12 situations, please set `$JOINT=-1`.
+
+    
 
 -   To collect dataset, please follow the example command:
 
@@ -35,13 +39,13 @@ Details could be viewd in `requirements.txt`.
     	--experiment_name $EXP --load_run $RUN --checkpoint $CHECKPOINT --file_name $FILE --joint $JOINT
     ```
 
--    To visualize the performance, please follow the example command:
+-   To visualize the performance, please follow the example command:
 -   ```bash
     python legged_gym/scripts/play.py --task a1_amp --sim_device $DEVICE --rl_device $DEVICE \
     	--experiment_name $EXP --load_run $RUN --checkpoint $CHECKPOINT --joint $JOINT --rate $RATE
-    ``` 
+    ```
 
--    `$RATE` means the degeneration rate, `-1` for randomization.
+-   `$RATE` means the degeneration rate, `-1` for randomization.
 
 ## Student Policy
 
