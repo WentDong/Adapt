@@ -1,11 +1,7 @@
 import glob
-import multiprocessing
 import os
-import pdb
 import random
-import time
 import pickle
-from regex import F
 import torch
 import numpy as np
 from torch.utils.data import Dataset
@@ -15,10 +11,11 @@ def flaw_generation(
     num_envs, bodydim=12, fixed_joint=[-1], flawed_rate=-1, device="cpu", upper_bound=1
 ):
     """
-    num_envs: 环境数
-    fixed_joint: 指定损坏的关节为fixed_joint(LIST) [0,11]，若不固定为-1
-    flawed_rate: 损坏程度为flawed_rate, 若随机坏损为-1
-    t(num_envs * len(fixed_joint)): 坏损的关节
+    num_envs: parallel envs
+    fixed_joint: id of joint, -1 for randomization
+    flawed_rate: degeneration rate, -1 for randomization
+
+    Outputs: bodies, joints
     """
     if bodydim == 0:
         return None, None
@@ -37,11 +34,10 @@ def flaw_generation(
 
 def step_body(bodies, joint, rate = 0.004, threshold = 0, upper_bound=1): #each joint has a flaw rate to be partial of itself.
     '''
-    joint: (num_envs, num) OR a single int, 每个环境对应的1个坏损关节 
-        #TODO: joint will become (num_envs, num), num means the number of flawed joints.
-    rate: 每个step, 有rate的概率使得关节扭矩往下掉, 剩余扭矩比例随机
-    threshold, 在剩余扭矩低于threshold时, 重置到随机的一个扭矩。
-    '''        
+    joint: (num_envs, num) OR a single int
+    rate: In every step, w.p. rate to degenerate the joint worse.
+    threshold: if the degenerate rate is lower than threshold, it will be set to a random value between 0.5 and 1.
+    '''       
     num_envs = bodies.shape[0]
     t = torch.rand(num_envs)
     t = (t<rate) * torch.rand(num_envs)
@@ -49,30 +45,18 @@ def step_body(bodies, joint, rate = 0.004, threshold = 0, upper_bound=1): #each 
     t = t.to(bodies.device)
     if type(joint) == torch.Tensor:
         joint = joint.to(bodies.device)
-        # print(bodies.shape, joint.shape, t.shape)
         p = torch.gather(bodies, 1, joint) * t
         bodies = torch.scatter(bodies, 1, joint, p)
         if threshold > 0: 
-            # tmp = torch.gather(bodies, 1, joint)
-            # t = (tmp < threshold) * torch.rand(num_envs, device=bodies.device)
-            # t = t.to(bodies.device)
-            # t = 1 / (1 - t)
-            # bodies = torch.scatter(bodies, 1, joint, t * tmp)
             rands = torch.rand_like(bodies)/2 + 0.6
             rands = torch.clamp(rands, min=0, max=upper_bound-1e-9)
             bodies = torch.where(bodies>threshold, bodies, rands)
-            # bodies = torch.clamp(bodies, min=0, max=upper_bound)
     else:
         bodies[:, joint] *= t
-        if threshold > 0:  # Here we assume that joint must be a single int
-            # t = (bodies[:, joint] < threshold) * torch.rand(num_envs, device=bodies.device) * (torch.rand(num_envs, device= bodies.device) < rate_reset)
-            # t = t.to(bodies.device)
-            # t = 1 / (1 - t)
-            # bodies[:, joint] *= t
+        if threshold > 0:  
             rands = torch.rand_like(bodies)/2 + 0.6
             rands = torch.clamp(rands, min=0, max=upper_bound-1e-9)
             bodies = torch.where(bodies>threshold, bodies, rands)
-            # bodies = torch.clamp(bodies, min=0, max=upper_bound)
 
     return bodies
 

@@ -36,8 +36,6 @@ class Positional_Encoding(nn.Module):
     def forward(self, x):
         # x: (B, T, D) Inputs are feature embeddings.
         return x + self.pe[:, :x.size(1)].repeat(x.size(0), 1, 1) # (B, T, D)
-        # # x: (B, T) Inputs are the index of steps.
-        # return torch.gather(self.pe.repeat(x.size(0), 1, 1), 1, x.unsqueeze(-1).repeat(1,1,self.d_model)) # B x T x D
     
 class MaskedCausalAttention(nn.Module):
     def __init__(self, h_dim, max_T, n_heads, drop_p):

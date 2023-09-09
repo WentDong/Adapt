@@ -8,27 +8,24 @@ import numpy as np
 import pandas as pd
 import yaml
 from legged_gym.envs import *
-from legged_gym.utils import (Logger, export_policy_as_jit, get_args,
-                              task_registry)
+from legged_gym.utils import (get_args, task_registry)
 from model import Adapt
-from scripts.utils import flaw_generation
 
 import isaacgym
-from legged_gym import LEGGED_GYM_ROOT_DIR
 
 import torch
 
-codename_list = []	#存储每条腿的字母代号
+codename_list = []	# 12 joints
 for i in ["F", "R"]:
     for j in ["L", "R"]:
         for k in ["H", "T", "C"]:
             codename_list.append(j+i+k)
 
-ENV_NUMS = 4096  #测试环境数
+ENV_NUMS = 4096  # envs
  
 def test_Adapt(args, env, model, faulty_tag = 0, flawed_rate = 1):
     # loading model
-    eval_batch_size = ENV_NUMS        # 测试环境数
+    eval_batch_size = ENV_NUMS  
     max_test_ep_len = 1000    	#iters
 
     body_dim = args["body_dim"]

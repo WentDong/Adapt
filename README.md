@@ -37,7 +37,7 @@ Details could be viewd in `requirements.txt`.
 
 -    To visualize the performance, please follow the example command:
 
-    ```   bash
+    ```bash
     python legged_gym/scripts/play.py --task a1_amp --sim_device $DEVICE --rl_device $DEVICE \
     	--experiment_name $EXP --load_run $RUN --checkpoint $CHECKPOINT --joint $JOINT --rate $RATE
     ```
