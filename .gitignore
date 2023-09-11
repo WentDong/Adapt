@@ -163,6 +163,5 @@ cython_debug/
 logs
 *_runs*
 data
-/datasets/
 /eval/
 wandb
