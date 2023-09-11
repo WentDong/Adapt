@@ -1,6 +1,13 @@
 # Adapt
 **A**ctuator  **D**egeneration **A**da**p**tation **T**ransformer. In submission progress of DAI 2023.
 
+## Videos
+
+https://github.com/WentDong/Adapt/assets/36011596/606592b8-1917-4b18-846f-adee68fc50ba
+
+
+
+
 ## Environment Require
 
 -   Nvidia IsaacGym
