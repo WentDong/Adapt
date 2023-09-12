@@ -6,7 +6,7 @@ def flaw_generation(
     """
     num_envs: parallel envs
     fixed_joint: id of joint, -1 for randomization
-    flawed_rate: degeneration rate, -1 for randomization
+    flawed_rate: degradation rate, -1 for randomization
 
     Outputs: bodies, joints
     """
@@ -30,8 +30,8 @@ def flaw_generation(
 def step_body(bodies, joint, rate = 0.004, threshold = 0, upper_bound=1): #each joint has a flaw rate to be partial of itself.
     '''
     joint: (num_envs, num) OR a single int
-    rate: In every step, w.p. rate to degenerate the joint worse.
-    threshold: if the degenerate rate is lower than threshold, it will be set to a random value between 0.5 and 1.
+    rate: In every step, w.p. rate to degradation the joint worse.
+    threshold: if the degradation rate is lower than threshold, it will be set to a random value between 0.5 and 1.
     '''        
     num_envs = bodies.shape[0]
     t = torch.rand(num_envs)

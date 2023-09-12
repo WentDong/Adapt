@@ -24,7 +24,7 @@ Details could be viewd in `requirements.txt`.
     	--experiment_name $EXP --rum_name $RUN --max_iteration $ITER --joint $JOINT --seed $SEED
     ```
 
--   `$JOINT` means the id of joint whose actuator is suffering the degeneration.
+-   `$JOINT` means the id of joint whose actuator is suffering the degradation.
 
       
 
@@ -52,7 +52,7 @@ Details could be viewd in `requirements.txt`.
     	--experiment_name $EXP --load_run $RUN --checkpoint $CHECKPOINT --joint $JOINT --rate $RATE
     ```
 
--   `$RATE` means the degeneration rate, `-1` for randomization.
+-   `$RATE` means the degradation rate, `-1` for randomization.
 
 ## Student Policy
 

@@ -52,7 +52,7 @@ def test_Adapt(args, env, model, faulty_tag = 0, flawed_rate = 1):
     
     #testing 
     with torch.no_grad():
-        print(f"joint {codename_list[faulty_tag]} with degeneration rate {flawed_rate} is under testing")
+        print(f"joint {codename_list[faulty_tag]} with degradation rate {flawed_rate} is under testing")
         for t in range(max_test_ep_len):
 
             states[:,t,:] = running_state

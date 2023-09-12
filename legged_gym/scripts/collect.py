@@ -67,8 +67,8 @@ if not os.path.exists(SAVE_DIR):
 
 def play(args, env, train_cfg, fault_id = -1, fault_rate_upperbound = 1):
 	'''
-	fault_id: id of the joint whose actuator suffering degeneration
-	fault_rate_upperbound: upperbound of the degeneration rate
+	fault_id: id of the joint whose actuator suffering degradation
+	fault_rate_upperbound: upperbound of the degradation rate
 	'''	
 	# load policy
 	train_cfg.runner.resume = True

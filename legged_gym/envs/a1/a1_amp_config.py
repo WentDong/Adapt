@@ -166,7 +166,7 @@ class A1AMPCfgPPO( LeggedRobotCfgPPO ):
         num_mini_batches = 4
 
     class runner( LeggedRobotCfgPPO.runner ):
-        run_name = 'Degeneration_random_example'
+        run_name = 'degradation_example'
         experiment_name = 'a1_amp_example'
         algorithm_class_name = 'AMPPPO'
         policy_class_name = 'ActorCritic'
