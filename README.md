@@ -3,9 +3,7 @@
 
 ## Videos
 
-https://github.com/WentDong/Adapt/assets/36011596/606592b8-1917-4b18-846f-adee68fc50ba
-
-
+https://github.com/WentDong/Adapt/assets/36011596/14a5e2e0-196c-48e0-8838-38e19581c6c6
 
 
 ## Environment Require
